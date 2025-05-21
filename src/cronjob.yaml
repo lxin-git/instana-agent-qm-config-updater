@@ -1,0 +1,30 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: instana-agent-qm-config-updater
+  namespace: instana-agent
+spec:
+  schedule: "*/5 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: instana-qm-config-updater
+          containers:
+          - name: updater
+            image: IMAGE_PLACEHOLDER
+            command: ["/bin/bash", "-c", "/script/qm_config_update.sh"]
+            volumeMounts:
+            - name: script-volume
+              mountPath: /script
+              readOnly: true
+            - name: temp-volume
+              mountPath: /tmp/instana
+          volumes:
+          - name: script-volume
+            configMap:
+              name: qm-config-update-sh
+              defaultMode: 0755
+          - name: temp-volume
+            emptyDir: {}
+          restartPolicy: OnFailure
